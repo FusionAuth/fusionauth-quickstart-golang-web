@@ -1,7 +1,6 @@
 package main
 
 import (
-//  "errors"
   "fmt"
 //  "os"
   "html/template"
@@ -20,26 +19,16 @@ type AccountVars struct {
 }
 
 //tag::oidcConstants[]
-// local.fusionauth.io::pied piper
 const (
-  FusionAuthHost string = "https://local.fusionauth.io"
-  FusionAuthTenantID string = "30663132-6464-6665-3032-326466613934"
-  FusionAuthClientID string = "85a03867-dccf-4882-adde-1a79aeec50df"
-  FusionAuthClientSecret string = "lqdmGhbzrslGF8v8RidkD-xMpXzTwGHMAXKiE5C-x-0"
+  FusionAuthHost string = "http://localhost:9011"
+  FusionAuthTenantID string = "d7d09513-a3f5-401c-9685-34ab6c552453"
+  FusionAuthClientID string = "e9fdb985-9173-4e01-9d73-ac2d60d1dc8e"
+  FusionAuthClientSecret string = "2HYT86lWSAntc-mvtHLX5XXEpk9ThcqZb4YEh65CLjA-not-for-prod"
   AccessTokenCookieName string = "cb_access_token"
   RefreshTokenCookieName string = "cb_refresh_token"
   IDTokenCookieName string = "cb_id_token"
 )
-//const (
-//  FusionAuthHost string = "http://localhost:9011"
-//  FusionAuthTenantID string = "d7d09513-a3f5-401c-9685-34ab6c552453"
-//  FusionAuthClientID string = "e9fdb985-9173-4e01-9d73-ac2d60d1dc8e"
-//  FusionAuthClientSecret string = "2HYT86lWSAntc-mvtHLX5XXEpk9ThcqZb4YEh65CLjA-not-for-prod"
-//  AccessTokenCookieName string = "cb_access_token"
-//  RefreshTokenCookieName string = "cb_refresh_token"
-//  IDTokenCookieName string = "cb_id_token"
-//)
-//end::oidcConstants[]
+end::oidcConstants[]
 
 //tag::oidcClient[]
 var (
@@ -73,11 +62,6 @@ func init() {
 //end::oidcClient[]
 
 func main() {
-//  if fusionAuthConfig == nil {
-//    fmt.Println("Error configuring OAuth, exiting");
-//    os.Exit(1);
-//  }
-
   http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
   http.HandleFunc("/", handleMain)
   http.HandleFunc("/login", handleLoginRequest)
