@@ -1,41 +1,50 @@
-# The Example For using FusionAuth and Golang
+# Example Flask Application 
 
-Simple demo for using [FusionAuth](http://fusionauth.io/) with Golang.
+This repo holds an example Go application that uses FusionAuth as the identity provider. 
+This application will use an OAuth Authorization Code Grant workflow to log a user in and 
+get them access and refresh tokens.
 
-You can view the corresponding blog post: https://fusionauth.io/blog/2020/10/22/securing-a-golang-app-with-oauth/
+This application was built by following the [Golang Quickstart](https://fusionauth.io/docs/quickstarts/fusionauth-quickstart-golang-web).
 
-This application will use an OAuth Authorization Code workflow and the PKCE extension to log users in. PKCE stands for Proof Key for Code Exchange, and is often pronounced “pixie”.
+## Project Contents
 
-## Installation
+The `docker-compose.yml` file and the `kickstart` directory are used to start and configure a local FusionAuth server.
 
-clone with git first
+The `/complete-application` directory contains a fully working version of the application.
 
-```bash
-git clone https://github.com/fusionauth/fusionauth-example-go
-```
+## Project Dependencies
+* Docker, for running FusionAuth
+* Go 1.16 or later, for running the Changebank Go application
 
-## Usage
-
-Assuming you've configured FusionAuth with a new application, update `main.go` with the client ID and client secret.
+## Running FusionAuth
+To run FusionAuth, just stand up the docker containers using `docker-compose`.
 
 ```shell
-go get github.com/thanhpk/randstr
-go get golang.org/x/oauth2
-go get github.com/nirasan/go-oauth-pkce-code-verifier
+docker-compose up
+```
+
+This will start a PostgreSQL database, and Elastic service, and the FusionAuth server.
+
+## Running the Example App
+To run the application, first go into the project directory
+
+```shell
+cd complete-application
+```
+
+Get your dependencies and create a go.sum file.
+
+```shell
+go mod tidy
+```
+
+Then use the `go` command to start up the application.
+
+```shell
 go run main.go
 ```
 
-## Contributing
+Visit the local webserver at `http://localhost:8080/` and sign in using the credentials:
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## Who made this?
-
-[Krissanawat Kaewsanmaung](https://github.com/krissnawat) - Creator
-
-
-## License
-[APACHE 2.0](https://www.apache.org/licenses/LICENSE-2.0)
-
+* username: richard@example.com
+* password: password
