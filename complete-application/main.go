@@ -28,7 +28,7 @@ const (
   RefreshTokenCookieName string = "cb_refresh_token"
   IDTokenCookieName string = "cb_id_token"
 )
-end::oidcConstants[]
+//end::oidcConstants[]
 
 //tag::oidcClient[]
 var (
@@ -123,9 +123,9 @@ func handleFusionAuthCallback(w http.ResponseWriter, r *http.Request) {
   }
 
   // Write access, refresh, and id tokens to http-only cookies
-  WriteCookie(w, AccessTokenCookieName, token.AccessToken, 3600)
-  WriteCookie(w, RefreshTokenCookieName, token.RefreshToken, 3600)
-  WriteCookie(w, IDTokenCookieName, rawIDToken, 3600)
+  WriteCookie(w, AccessTokenCookieName, token.AccessToken, 3600, true)
+  WriteCookie(w, RefreshTokenCookieName, token.RefreshToken, 3600, true)
+  WriteCookie(w, IDTokenCookieName, rawIDToken, 3600, false)
 
   http.Redirect(w, r, "/account", http.StatusFound)
 }
@@ -184,9 +184,9 @@ func handleAccount(w http.ResponseWriter, r *http.Request) {
 //tag::logoutRoute[]
 func handleLogout(w http.ResponseWriter, r *http.Request) {
   // Delete the cookies we set
-  WriteCookie(w, AccessTokenCookieName, "", -1)
-  WriteCookie(w, RefreshTokenCookieName, "", -1)
-  WriteCookie(w, IDTokenCookieName, "", -1)
+  WriteCookie(w, AccessTokenCookieName, "", -1, true)
+  WriteCookie(w, RefreshTokenCookieName, "", -1, true)
+  WriteCookie(w, IDTokenCookieName, "", -1, false)
 
   http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -207,8 +207,8 @@ func WriteWebPage(w http.ResponseWriter, tmpl string, vars interface{}) {
   }
 }
 
-func WriteCookie(w http.ResponseWriter, name string, value string, maxAge int) {
-  cookie := http.Cookie{ Name: name, Domain: "localhost", Value: value, Path: "/", MaxAge: maxAge, HttpOnly: true, SameSite: http.SameSiteLaxMode, }
+func WriteCookie(w http.ResponseWriter, name string, value string, maxAge int, httpOnly bool) {
+  cookie := http.Cookie{ Name: name, Domain: "localhost", Value: value, Path: "/", MaxAge: maxAge, HttpOnly: false, SameSite: http.SameSiteLaxMode, }
   http.SetCookie(w, &cookie)
 }
 
