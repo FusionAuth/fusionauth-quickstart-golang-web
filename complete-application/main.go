@@ -1,5 +1,6 @@
 package main
 
+//tag::oidcConstants[]
 import (
   "fmt"
   "html/template"
@@ -10,6 +11,7 @@ import (
   "golang.org/x/oauth2"
   "github.com/coreos/go-oidc/v3/oidc"
 )
+//end::oidcConstants[]
 
 // This supplies data to the /account page
 type AccountVars struct {
