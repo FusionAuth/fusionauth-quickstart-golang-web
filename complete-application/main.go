@@ -56,7 +56,7 @@ func init() {
       ClientSecret: FusionAuthClientSecret,
       RedirectURL:  "http://localhost:8080/callback",
       Endpoint:     oidcProvider.Endpoint(),
-      Scopes:       []string{oidc.ScopeOpenID, "offline_access"},
+      Scopes:       []string{oidc.ScopeOpenID, "email", "offline_access"},
     }
   }
 }
