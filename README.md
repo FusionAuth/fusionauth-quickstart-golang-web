@@ -1,4 +1,4 @@
-# Example Flask Application 
+# Example Go  Application 
 
 This repo holds an example Go application that uses FusionAuth as the identity provider. 
 This application will use an OAuth Authorization Code Grant workflow to log a user in and 
