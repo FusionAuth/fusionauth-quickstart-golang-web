@@ -72,12 +72,6 @@ body {
   margin-left: 40px;
 }
 
-.menu-link {
-  font-weight: 600;
-  color: #FFFFFF;
-  margin-left: 40px;
-}
-
 .inactive {
   text-decoration-line: none;
 }
@@ -87,9 +81,9 @@ body {
   height: 30px;
   background-color: #096324;
   color: #FFFFFF;
-  font-size: 16px; 
-  font-weight: 700; 
-  border-radius: 10px; 
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 10px;
   text-align: center;
   padding-top: 10px;
   text-decoration-line: none;

@@ -1,4 +1,3 @@
-//tag::baseApplication[]
 package main
 
 import (
@@ -14,6 +13,7 @@ func main() {
   http.HandleFunc("/login", handleFusionAuthLogin)
   http.HandleFunc("/callback", handleFusionAuthCallback)
   http.HandleFunc("/account", handleAccount)
+  http.HandleFunc("/make-change", handleMakeChange)
   http.HandleFunc("/logout", handleLogout)
 
   port := "8080"
@@ -39,27 +39,36 @@ func handleAccount(w http.ResponseWriter, r *http.Request) {
   http.Redirect(w, r, "/", http.StatusFound)
 }
 
+func handleMakeChange(w http.ResponseWriter, r *http.Request) {
+  http.Redirect(w, r, "/", http.StatusFound)
+}
+
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
-// a function for writing a server-rendered web page
 func WriteWebPage(w http.ResponseWriter, tmpl string, vars interface{}) {
   fn := path.Join("templates", tmpl)
-  parsed_tmpl, error := template.ParseFiles(fn)
+  parsedTmpl, err := template.ParseFiles(fn)
 
-  if error != nil {
-    http.Error(w, "Error reading template file " + tmpl + ": " + error.Error(), http.StatusInternalServerError)
+  if err != nil {
+    http.Error(w, "Error reading template file " + tmpl + ": " + err.Error(), http.StatusInternalServerError)
     return
   }
 
-  if error := parsed_tmpl.Execute(w, vars); error != nil {
-    http.Error(w, error.Error(), http.StatusInternalServerError)
+  if err := parsedTmpl.Execute(w, vars); err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
-func WriteCookie(w http.ResponseWriter, name string, value string, maxAge int) {
-  cookie := http.Cookie{ Name: name, Domain: "localhost", Value: value, Path: "/", MaxAge: maxAge, HttpOnly: true, SameSite: http.SameSiteLaxMode, }
+func WriteCookie(w http.ResponseWriter, name string, value string, maxAge int, httpOnly bool) {
+  cookie := http.Cookie{
+    Name:     name,
+    Domain:   "localhost",
+    Value:    value,
+    Path:     "/",
+    MaxAge:   maxAge,
+    HttpOnly: httpOnly,
+    SameSite: http.SameSiteLaxMode,
+  }
   http.SetCookie(w, &cookie)
 }
-
-//end::baseApplication[]

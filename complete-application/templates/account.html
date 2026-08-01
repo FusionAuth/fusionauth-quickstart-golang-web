@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>FusionAuth OpenID and PKCE example</title>
+  <title>FusionAuth Golang example</title>
   <link rel="stylesheet" href="/static/css/changebank.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
         <img src="https://fusionauth.io/cdn/samplethemes/changebank/changebank.svg" />
         <div class="h-row">
           <p class="header-email">{{ .Email }}</p>
-          <a class="button-lg" href={{ .LogoutUrl }}>Logout</a>
+          <a class="button-lg" href="{{ .LogoutUrl }}">Logout</a>
         </div>
       </div>
 
@@ -22,7 +22,6 @@
     </div>
 
     <div style="flex: 1;">
-      <!-- Application page -->
       <div class="column-container">
         <div class="app-container">
           <h3>Your balance</h3>

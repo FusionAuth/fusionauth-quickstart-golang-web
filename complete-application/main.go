@@ -1,56 +1,59 @@
 package main
 
-//tag::oidcConstants[]
 import (
   "fmt"
   "html/template"
+  "math"
   "net/http"
   "net/url"
   "path"
+  "strconv"
+
+  "github.com/coreos/go-oidc/v3/oidc"
   "github.com/thanhpk/randstr"
   "golang.org/x/oauth2"
-  "github.com/coreos/go-oidc/v3/oidc"
 )
-//end::oidcConstants[]
 
-// This supplies data to the /account page
 type AccountVars struct {
   LogoutUrl string
-  Email string
+  Email     string
 }
 
-//tag::oidcConstants[]
-const (
-  FusionAuthHost string = "http://localhost:9011"
-  FusionAuthTenantID string = "d7d09513-a3f5-401c-9685-34ab6c552453"
-  FusionAuthClientID string = "e9fdb985-9173-4e01-9d73-ac2d60d1dc8e"
-  FusionAuthClientSecret string = "2HYT86lWSAntc-mvtHLX5XXEpk9ThcqZb4YEh65CLjA-not-for-prod"
-  AccessTokenCookieName string = "cb_access_token"
-  RefreshTokenCookieName string = "cb_refresh_token"
-  IDTokenCookieName string = "cb_id_token"
-)
-//end::oidcConstants[]
+type MakeChangeVars struct {
+  LogoutUrl string
+  Email     string
+  Error     string
+  Total     string
+  Nickels   int
+  Pennies   int
+}
 
-//tag::oidcClient[]
+const (
+  FusionAuthHost         string = "http://localhost:9011"
+  FusionAuthTenantID     string = "d7d09513-a3f5-401c-9685-34ab6c552453"
+  FusionAuthClientID     string = "e9fdb985-9173-4e01-9d73-ac2d60d1dc8e"
+  FusionAuthClientSecret string = "2HYT86lWSAntc-mvtHLX5XXEpk9ThcqZb4YEh65CLjA-not-for-prod"
+  AccessTokenCookieName  string = "cb_access_token"
+  RefreshTokenCookieName string = "cb_refresh_token"
+  IDTokenCookieName      string = "cb_id_token"
+)
+
 var (
-  oidcProvider *oidc.Provider 
+  oidcProvider     *oidc.Provider
   fusionAuthConfig *oauth2.Config
 
-  // In a production application, we would persist a unique state string for each login request
+  // In a production application, persist a unique state string per login request
   oauthStateString string = randstr.Hex(16)
 )
 
 func init() {
-  // configure an OIDC provider
   provider, err := oidc.NewProvider(oauth2.NoContext, FusionAuthHost)
 
   if err != nil {
     fmt.Println("Error creating OIDC provider: " + err.Error())
   } else {
-
     oidcProvider = provider
 
-    // initialize OAuth
     fusionAuthConfig = &oauth2.Config{
       ClientID:     FusionAuthClientID,
       ClientSecret: FusionAuthClientSecret,
@@ -60,7 +63,6 @@ func init() {
     }
   }
 }
-//end::oidcClient[]
 
 func main() {
   http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
@@ -68,18 +70,17 @@ func main() {
   http.HandleFunc("/login", handleLoginRequest)
   http.HandleFunc("/callback", handleFusionAuthCallback)
   http.HandleFunc("/account", handleAccount)
+  http.HandleFunc("/make-change", handleMakeChange)
   http.HandleFunc("/logout", handleLogout)
 
   port := "8080"
 
   fmt.Println("Starting HTTP server at http://localhost:" + port)
-  fmt.Println(http.ListenAndServe(":" + port, nil))
+  fmt.Println(http.ListenAndServe(":"+port, nil))
 }
 
-//tag::main[]
 func handleMain(w http.ResponseWriter, r *http.Request) {
-
-  // see if the user is authenticated. In a real application, we would validate the token signature and expiration
+  // See if the user is authenticated. In a real application, validate the token signature and expiration.
   _, err := r.Cookie(AccessTokenCookieName)
 
   if err != nil {
@@ -87,22 +88,18 @@ func handleMain(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  // The user is authenticated so redirect to /account. We redirect so that the location in the browser shows /account.
+  // The user is authenticated, redirect to /account.
   http.Redirect(w, r, "/account", http.StatusFound)
   return
 }
-//end::main[]
 
-//tag::loginRoute[]
 func handleLoginRequest(w http.ResponseWriter, r *http.Request) {
   http.Redirect(w, r, fusionAuthConfig.AuthCodeURL(oauthStateString), http.StatusFound)
 }
-//end::loginRoute[]
 
-//tag::callbackRoute[]
 func handleFusionAuthCallback(w http.ResponseWriter, r *http.Request) {
 
-  // validate the state value, to make sure this came from us
+  // Validate the state value to make sure this came from us
   if r.FormValue("state") != oauthStateString {
     http.Error(w, "Bad request - incorrect state value", http.StatusBadRequest)
     return
@@ -112,7 +109,7 @@ func handleFusionAuthCallback(w http.ResponseWriter, r *http.Request) {
   token, err := fusionAuthConfig.Exchange(oauth2.NoContext, r.FormValue("code"))
 
   if err != nil {
-    http.Error(w, "Error getting access token: " + err.Error(), http.StatusInternalServerError)
+    http.Error(w, "Error getting access token: "+err.Error(), http.StatusInternalServerError)
     return
   }
 
@@ -130,18 +127,16 @@ func handleFusionAuthCallback(w http.ResponseWriter, r *http.Request) {
 
   http.Redirect(w, r, "/account", http.StatusFound)
 }
-//end::callbackRoute[]
 
-//tag::accountRoute[]
 func getLogoutUrl() string {
-  url := fmt.Sprintf("%s/oauth2/logout?client_id=%s&tenantId=%s", FusionAuthHost, url.QueryEscape(FusionAuthClientID), url.QueryEscape(FusionAuthTenantID))
-  return url
+  return fmt.Sprintf("%s/oauth2/logout?client_id=%s&tenantId=%s",
+    FusionAuthHost, url.QueryEscape(FusionAuthClientID), url.QueryEscape(FusionAuthTenantID))
 }
 
 func handleAccount(w http.ResponseWriter, r *http.Request) {
 
-  // Make sure the user is authenticated. Note that in a production application, we would validate the token signature, 
-  // make sure it wasn't expired, and attempt to refresh it if it were
+  // Make sure the user is authenticated. In a production application, validate the token
+  // signature, check expiration, and attempt to refresh if expired.
   cookie, err := r.Cookie(AccessTokenCookieName)
 
   if err != nil || cookie == nil {
@@ -149,40 +144,89 @@ func handleAccount(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  // Now get the ID token so we can show the user's email address
+  // Get the ID token to display the user's email address
   cookie, err = r.Cookie(IDTokenCookieName)
 
-  if err != nil || cookie == nil{
+  if err != nil || cookie == nil {
     http.Error(w, "No ID token found", http.StatusBadRequest)
     return
   }
 
-  var verifier = oidcProvider.Verifier(&oidc.Config{ClientID: FusionAuthClientID})
+  verifier := oidcProvider.Verifier(&oidc.Config{ClientID: FusionAuthClientID})
 
   idToken, err := verifier.Verify(oauth2.NoContext, cookie.Value)
 
   if err != nil {
-    http.Error(w, "Error verifying ID token: " + err.Error(), http.StatusBadRequest)
+    http.Error(w, "Error verifying ID token: "+err.Error(), http.StatusBadRequest)
     return
   }
 
   // Extract the email claim
   var claims struct {
-    Email    string `json:"email"`
+    Email string `json:"email"`
   }
 
   if err := idToken.Claims(&claims); err != nil {
-    http.Error(w, "Error reading claims from ID token: " + err.Error(), http.StatusInternalServerError)
+    http.Error(w, "Error reading claims from ID token: "+err.Error(), http.StatusInternalServerError)
     return
   }
 
-  templateVars := AccountVars{LogoutUrl: getLogoutUrl(), Email: claims.Email}
-
-  WriteWebPage(w, "account.html", templateVars)
+  WriteWebPage(w, "account.html", AccountVars{LogoutUrl: getLogoutUrl(), Email: claims.Email})
 }
-//end::accountRoute[]
 
-//tag::logoutRoute[]
+func handleMakeChange(w http.ResponseWriter, r *http.Request) {
+  cookie, err := r.Cookie(AccessTokenCookieName)
+
+  if err != nil || cookie == nil {
+    http.Redirect(w, r, "/", http.StatusFound)
+    return
+  }
+
+  cookie, err = r.Cookie(IDTokenCookieName)
+
+  if err != nil || cookie == nil {
+    http.Error(w, "No ID token found", http.StatusBadRequest)
+    return
+  }
+
+  verifier := oidcProvider.Verifier(&oidc.Config{ClientID: FusionAuthClientID})
+
+  idToken, err := verifier.Verify(oauth2.NoContext, cookie.Value)
+
+  if err != nil {
+    http.Error(w, "Error verifying ID token: "+err.Error(), http.StatusBadRequest)
+    return
+  }
+
+  var claims struct {
+    Email string `json:"email"`
+  }
+
+  if err := idToken.Claims(&claims); err != nil {
+    http.Error(w, "Error reading claims from ID token: "+err.Error(), http.StatusInternalServerError)
+    return
+  }
+
+  vars := MakeChangeVars{LogoutUrl: getLogoutUrl(), Email: claims.Email}
+
+  if r.Method == http.MethodPost {
+    amountStr := r.FormValue("amount")
+    amount, err := strconv.ParseFloat(amountStr, 64)
+    if err != nil || amount < 0 {
+      vars.Error = "Please enter a valid dollar amount"
+    } else {
+      total := math.Floor(amount*100) / 100
+      nickels := int(math.Floor(total / 0.05))
+      pennies := int(math.Round((total - float64(nickels)*0.05) / 0.01))
+      vars.Total = fmt.Sprintf("%.2f", total)
+      vars.Nickels = nickels
+      vars.Pennies = pennies
+    }
+  }
+
+  WriteWebPage(w, "make-change.html", vars)
+}
+
 func handleLogout(w http.ResponseWriter, r *http.Request) {
   // Delete the cookies we set
   WriteCookie(w, AccessTokenCookieName, "", -1, true)
@@ -191,25 +235,30 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 
   http.Redirect(w, r, "/", http.StatusFound)
 }
-//end::logoutRoute[]
 
-// a function for writing a server-rendered web page
 func WriteWebPage(w http.ResponseWriter, tmpl string, vars interface{}) {
   fn := path.Join("templates", tmpl)
-  parsed_tmpl, error := template.ParseFiles(fn)
+  parsedTmpl, err := template.ParseFiles(fn)
 
-  if error != nil {
-    http.Error(w, "Error reading template file " + tmpl + ": " + error.Error(), http.StatusInternalServerError)
+  if err != nil {
+    http.Error(w, "Error reading template file "+tmpl+": "+err.Error(), http.StatusInternalServerError)
     return
   }
 
-  if error := parsed_tmpl.Execute(w, vars); error != nil {
-    http.Error(w, error.Error(), http.StatusInternalServerError)
+  if err := parsedTmpl.Execute(w, vars); err != nil {
+    http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func WriteCookie(w http.ResponseWriter, name string, value string, maxAge int, httpOnly bool) {
-  cookie := http.Cookie{ Name: name, Domain: "localhost", Value: value, Path: "/", MaxAge: maxAge, HttpOnly: false, SameSite: http.SameSiteLaxMode, }
+  cookie := http.Cookie{
+    Name:     name,
+    Domain:   "localhost",
+    Value:    value,
+    Path:     "/",
+    MaxAge:   maxAge,
+    HttpOnly: httpOnly,
+    SameSite: http.SameSiteLaxMode,
+  }
   http.SetCookie(w, &cookie)
 }
-

@@ -1,50 +1,58 @@
-# Example Go  Application 
+# FusionAuth Quickstart: Golang
 
-This repo holds an example Go application that uses FusionAuth as the identity provider. 
-This application will use an OAuth Authorization Code Grant workflow to log a user in and 
-get them access and refresh tokens.
+> [!WARNING]
+> This repository is generated from content that lives at [github.com/FusionAuth/fusionauth-site](https://github.com/FusionAuth/fusionauth-site/tree/main/astro/localcode/quickstart-golang-web). Changes to files here _will be overwritten by that automation_. File an issue or pull request with [fusionauth-site](https://github.com/FusionAuth/fusionauth-site) instead.
 
-This application was built by following the [Golang Quickstart](https://fusionauth.io/docs/quickstarts/fusionauth-quickstart-golang-web).
+This repo holds an example Go application that uses FusionAuth as the identity provider.
+
+This repository is documented at https://fusionauth.io/docs/quickstarts/quickstart-golang-web.
 
 ## Project Contents
 
 The `docker-compose.yml` file and the `kickstart` directory are used to start and configure a local FusionAuth server.
 
-The `/complete-application` directory contains a fully working version of the application.
+The `complete-application` directory contains a fully working version of the application.
 
-## Project Dependencies
-* Docker, for running FusionAuth
-* Go 1.16 or later, for running the Changebank Go application
+## Prerequisites
+
+* [Go](https://go.dev/doc/install) 1.16 or later
+* [Docker](https://www.docker.com) version 20 or later.
+* On macOS and Windows, one of the following container management tools:
+  * [Docker desktop](https://www.docker.com/products/docker-desktop/)
+  * [OrbStack](https://docs.orbstack.dev/quick-start) (to use Orbstack for `docker compose` commands after install, run `docker context use orbstack`)
+  * [Podman](https://podman.io/docs/installation) (in the commands below, replace `docker` with `podman`)
 
 ## Running FusionAuth
-To run FusionAuth, just stand up the docker containers using `docker-compose`.
+
+Clone the example repo and change into the project directory:
 
 ```shell
-docker-compose up
+git clone https://github.com/FusionAuth/fusionauth-quickstart-golang-web.git
+cd fusionauth-quickstart-golang-web
 ```
 
-This will start a PostgreSQL database, and Elastic service, and the FusionAuth server.
+Start the containers:
 
-## Running the Example App
-To run the application, first go into the project directory
+```shell
+docker compose up -d
+```
+
+This will start containers for PostgreSQL, OpenSearch, and FusionAuth with the following settings:
+
+* client id: `e9fdb985-9173-4e01-9d73-ac2d60d1dc8e`
+* client secret: `2HYT86lWSAntc-mvtHLX5XXEpk9ThcqZb4YEh65CLjA-not-for-prod`
+* example username: `richard@example.com` / `password`
+* admin username: `admin@example.com` / `password`
+* FusionAuth base URL: `http://localhost:9011`
+
+Log into the [FusionAuth admin UI](http://localhost:9011/admin) to experiment with more configuration.
+
+## Running the Example Application
 
 ```shell
 cd complete-application
-```
-
-Get your dependencies and create a go.sum file.
-
-```shell
 go mod tidy
-```
-
-Then use the `go` command to start up the application.
-
-```shell
 go run main.go
 ```
 
-Visit the local webserver at `http://localhost:8080/` and sign in using the credentials:
-
-* username: richard@example.com
-* password: password
+Browse to the app at [http://localhost:8080](http://localhost:8080) and log in with `richard@example.com` and `password`.
